@@ -4,6 +4,7 @@ import random
 import logging
 import requests
 import configUtil
+from send import sendMSG
 
 
 def request(url, authorization, type="POST", parm=None):  # 封装请求方法
@@ -308,8 +309,7 @@ def collect_star(config):
     # 设备详情
     content.append("[设备详细]：")
     content = content + deviceData['msg']  # 设备消息返回的是list
-    print("[甜糖星愿]星愿日结详细", content)
-    # sendMSG("[甜糖星愿]星愿日结详细", content)
+    sendMSG("[甜糖星愿]星愿日结详细", content)
 
 
 if __name__ == '__main__':
