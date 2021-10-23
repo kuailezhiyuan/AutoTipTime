@@ -260,12 +260,12 @@ def withdrawType(authorization, userInfo):  # 根据用户是否签约来决定�
 
 def withdraw(authorization, week, userInfo):
     now_week = int(datetime.datetime.now().isoweekday())  # 获取今天是星期几返回1-7
+    items = None
+    msg = "无"
+    errCode = 1
     if week == now_week:
         msg, items = withdrawType(authorization, userInfo)
         errCode = 0
-    else:
-        msg = "无"
-        errCode = 1
     return {'data': items, 'msg': msg, 'errCode': errCode}
 
 
@@ -307,7 +307,7 @@ def collect_star(config):
 
     # 设备详情
     content.append("[设备详细]：")
-    content.append(deviceData['msg'])
+    content = content + deviceData['msg']  # 设备消息返回的是list
     print("[甜糖星愿]星愿日结详细", content)
     # sendMSG("[甜糖星愿]星愿日结详细", content)
 
