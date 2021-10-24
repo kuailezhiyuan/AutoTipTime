@@ -90,7 +90,7 @@ def signIn(authorization):  # 签到功能
         msg = "[签到奖励]" + str(data['data']) + "-🌟"
         star = data['data']
         errCode = 0
-        logging.info("签到成功,获取到" + data['data'])
+        logging.info("签到成功,获取到" + str(data['data']))
     return {'msg': msg, 'data': star, 'errCode': errCode}
 
 
@@ -103,7 +103,7 @@ def scoreLogs(authorization, score):  # 收取推广奖励星星
         logging.info("无推广收益")
     else:
         url = "http://tiantang.mogencloud.com/api/v1/promote/score_logs"
-        data = request(url, authorization).json()
+        data = request(url, authorization, parm={'score': score}).json()
         if data['errCode'] != 0:
             msg = "[推广奖励]0-🌟(收取异常)"
             star = 0
@@ -113,7 +113,7 @@ def scoreLogs(authorization, score):  # 收取推广奖励星星
             msg = "[推广奖励]" + str(score) + "-🌟"
             star = score
             errCode = 0
-            logging.info("收取推广奖励成功,获取到" + data['data'])
+            logging.info("收取推广奖励成功,获取到" + str(data['data']))
     return {'msg': msg, 'data': star, 'errCode': errCode}
 
 
@@ -135,7 +135,7 @@ def collectDevice(authorization):  # 收取设备奖励
             else:
                 resultStr.append("[" + parm['name'] + "]" + str(parm['score']) + "-🌟")
                 resultScore += parm['score']
-                logging.info("收取[" + device['alias'] + "]设备成功,获取到" + parm['score'])
+                logging.info("收取[" + device['alias'] + "]设备成功,获取到" + str(parm['score']))
         sleep_time = random.randint(1, 4)
         time.sleep(sleep_time)
     logging.info("全部设备收取完成,获取到" + str(resultScore))
@@ -180,11 +180,11 @@ def aliPay(authorization, realName, cardId, score):  # 支付宝提现
     }
     data = request(url, authorization, parm=parm).json()
     if data['errCode'] == 403002:
-        logging.debug("[自动提现]支付宝提现失败，" + data['msg'])
+        logging.error("[自动提现]支付宝提现失败，[错误信息]" + data['msg'] + "[星愿数]" + str(score))
         return "[自动提现]支付宝提现失败，" + data['msg'], ""
     if data['errCode'] != 0:
         print("" + data['msg'] + str(score))
-        logging.debug("" + data['msg'] + str(score))
+        logging.error("[自动提现]支付宝提现失败，[错误信息]" + data['msg'] + "[星愿数]" + str(score))
         return "[自动提现]支付宝提现失败，请关闭自动提现等待更新并及时查看甜糖客户端app的账目", ""
 
     data = data['data']
@@ -195,6 +195,7 @@ def aliPay(authorization, realName, cardId, score):  # 支付宝提现
     item = []
     item.append("提现方式：支付宝")
     item.append("支付宝号：" + zfbID)
+    logging.info("[自动提现]扣除" + str(score))
     return "[自动提现]扣除" + str(score) + "-🌟", item
 
 
@@ -210,14 +211,15 @@ def bankCard(authorization, realName, cardId, score, bankName, subBankName):  # 
     }
     data = request(url, authorization, parm=parm).json()
     if score < 1000:
+        logging.info("[自动提现]银行卡提现失败，星愿数不足1000")
         return "[自动提现]银行卡提现失败，星愿数不足1000", ""
 
     if data['errCode'] == 403002:
-        logging.debug("[自动提现]银行卡提现失败，" + data['msg'])
+        logging.error("[自动提现]银行卡提现失败，[错误信息]" + data['msg'] + "[星愿数]" + str(score))
         return "[自动提现]银行卡提现失败，" + data['msg'], ""
     if data['errCode'] != 0:
         print("" + data['msg'] + str(score))
-        logging.debug("" + data['msg'] + str(score))
+        logging.error("[自动提现]银行卡提现失败，[错误信息]" + data['msg'] + "[星愿数]" + str(score))
         return "[自动提现]银行卡提现失败，请关闭自动提现等待更新并及时查看甜糖客户端app的账目", ""
 
     data = data['data']
@@ -228,12 +230,14 @@ def bankCard(authorization, realName, cardId, score, bankName, subBankName):  # 
     item = []
     item.append("提现方式：银行卡")
     item.append("银行卡号：" + yhkID)
+    logging.info("[自动提现]扣除" + str(score))
     return "[自动提现]扣除" + str(score) + "-🌟", item
 
 
 def withdrawType(authorization, userInfo):  # 根据用户是否签约来决定提现方式
     isEContract = userInfo['isEContract']
     if isEContract:
+        logging.info("[自动提现]银行卡提现")
         # 已经实名签约的采用银行卡提现
         bankCardList = userInfo['bankCardList']  # 获取支付宝列表
         if len(bankCardList) == 0:
@@ -247,6 +251,7 @@ def withdrawType(authorization, userInfo):  # 根据用户是否签约来决定�
                                           subBankName=bankCardList[0]['subBankName'])
     else:
         # 未实名签约采用支付宝提现
+        logging.info("[自动提现]支付宝提现")
         zfbList = userInfo['zfbList']  # 获取支付宝列表
         if len(zfbList) == 0:
             withdraw_str = "[自动提现]支付提现失败，原因是未绑定支付宝号，请绑定支付宝账户"
@@ -265,6 +270,7 @@ def withdraw(authorization, week, userInfo):
     msg = "无"
     errCode = 1
     if week == now_week:
+        logging.info("[自动提现]到达设定日期，开始提现")
         msg, items = withdrawType(authorization, userInfo)
         errCode = 0
     return {'data': items, 'msg': msg, 'errCode': errCode}
