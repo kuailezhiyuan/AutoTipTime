@@ -32,6 +32,9 @@ def getConfig():  #获取配置信息
             traceback.print_exc()
             logging.error("配置文件读取失败,初始化操作")
             config = baseConfig
+            f.seek(0)
+            f.truncate()
+            f.write(json.dumps(config, indent=4, ensure_ascii=False))
     return config
 
 

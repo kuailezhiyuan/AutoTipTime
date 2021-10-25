@@ -136,8 +136,8 @@ def collectDevice(authorization):  # 收取设备奖励
                 resultStr.append("[" + parm['name'] + "]" + str(parm['score']) + "-🌟")
                 resultScore += parm['score']
                 logging.info("收取[" + device['alias'] + "]设备成功,获取到" + str(parm['score']))
-        sleep_time = random.randint(1, 4)
-        time.sleep(sleep_time)
+            sleep_time = random.randint(1, 4)
+            time.sleep(sleep_time)
     logging.info("全部设备收取完成,获取到" + str(resultScore))
     return {'msg': resultStr, 'data': resultScore, 'errCode': 0}
 
@@ -276,18 +276,7 @@ def withdraw(authorization, week, userInfo):
     return {'data': items, 'msg': msg, 'errCode': errCode}
 
 
-# 收取星星并提现
-def collect_star(config):
-    authorization = config.get('authorization')
-    userInfo = getUserInfo(authorization)  # 获取用户信息
-    signInData = signIn(authorization)  # 收取签到收益
-    scoreLogData = scoreLogs(authorization, userInfo['inactivedPromoteScore'])  # 收取推广收益
-    deviceData = collectDevice(authorization)  # 收取设备收益
-    bandwidthData = countBandwidth(authorization)  # 计算结算带宽
-    withdrawData = withdraw(authorization, config.get('week'), userInfo)  # 自动提现
-
-    # # *********************************收益统计并发送消息*************************************
-
+def createContent(userInfo,signInData,scoreLogData,deviceData,bandwidthData,withdrawData):
     total = signInData['data'] + scoreLogData['data'] + deviceData['data']
     total_str = "[日总收益]" + str(total) + "-🌟"
     accountScore = userInfo['score']
@@ -315,10 +304,37 @@ def collect_star(config):
     # 设备详情
     content.append("[设备详细]：")
     content = content + deviceData['msg']  # 设备消息返回的是list
-    sendMSG("[甜糖星愿]星愿日结详细", content)
+    return content
+
+
+# 收取星星并提现
+def collect_star(config):
+    authorization = config.get('authorization')
+    userInfo = getUserInfo(authorization)  # 获取用户信息
+    signInData = signIn(authorization)  # 收取签到收益
+    scoreLogData = scoreLogs(authorization, userInfo['inactivedPromoteScore'])  # 收取推广收益
+    deviceData = collectDevice(authorization)  # 收取设备收益
+    bandwidthData = countBandwidth(authorization)  # 计算结算带宽
+    withdrawData = withdraw(authorization, config.get('week'), userInfo)  # 自动提现
+
+    content = createContent(userInfo=userInfo,  #生成消息内容
+                            signInData=signInData,
+                            scoreLogData=scoreLogData,
+                            deviceData=deviceData,
+                            bandwidthData=bandwidthData,
+                            withdrawData=withdrawData)
+    sendMSG("[甜糖星愿]星愿日结详细", content)  # 发送消息
 
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     config = configUtil.getConfig()
-    collect_star(config)
+    if config['authorization'] !=None and len(config['authorization'])>10:
+        collect_star(config)
+    else:
+        print("获取Token")
+        phone = input('请输入手机号')
+        getCode(phone)
+        code = input('请输入验证码')
+        configUtil.updataConfig({"authorization":getToken(phone,code)['data']})
+
