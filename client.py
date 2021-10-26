@@ -115,7 +115,7 @@ def scoreLogs(authorization, score):  # 收取推广奖励星星
             msg = "[推广奖励]" + str(score) + "-🌟"
             star = score
             errCode = 0
-            logging.info("收取推广奖励成功,获取到" + str(data['data']))
+            logging.info("收取推广奖励成功,获取到" + str(score))
     return {'msg': msg, 'data': star, 'errCode': errCode}
 
 
