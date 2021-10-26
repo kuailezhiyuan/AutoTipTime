@@ -58,6 +58,7 @@ def getUserInfo(authorization):  # 甜糖用户初始化信息，可以获取待
     data = request(url, authorization).json()
     if data['errCode'] != 0:
         logging.error("authorization已经失效!")
+        configUtil.updataConfig({'authorization': ''})
         raise Exception("authorization已经失效!")
     logging.info("用户信息获取成功,[账户昵称]" + data['data']['nickName'] + "[手机号]" + data['data']['phoneNum'])
     return data['data']
@@ -68,6 +69,7 @@ def getDevicesList(authorization):  # 获取当前设备列表，可以获取待
     url = "http://tiantang.mogencloud.com/api/v1/devices?page=1&type=2&per_page=200"
     data = request(url, authorization, type="GET").json()
     if data['errCode'] != 0:
+        configUtil.updataConfig({'authorization': ''})
         raise Exception("authorization已经失效")
     devicesList = data['data']['data']
     logging.info("获取设备列表成功,[设备数量]" + str(len(devicesList)))
@@ -281,7 +283,7 @@ def createContent(userInfo,signInData,scoreLogData,deviceData,bandwidthData,with
     total_str = "[日总收益]" + str(total) + "-🌟"
     accountScore = userInfo['score']
     nickName = "[账户昵称]" + userInfo['nickName']
-    accountScore_str = "[账户星愿]" + str(accountScore) + "-🌟"
+    accountScore_str = "[账户星愿]" + str(accountScore+total) + "-🌟"
     now_time = datetime.datetime.now().strftime('%F %T')
     now_time_str = "[当前时间]" + now_time
     content = []
