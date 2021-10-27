@@ -169,6 +169,7 @@ def aliPay(authorization, realName, cardId, score):  # 支付宝提现
     url = "http://tiantang.mogencloud.com/api/v1/withdraw_logs"
     score = score - score % 100
     if score < 1000:
+        logging.info("[自动提现]支付宝提现失败，星愿数不足1000")
         return "[自动提现]支付宝提现失败，星愿数不足1000", ""
     if score >= 10000:
         score = 9900
@@ -267,11 +268,11 @@ def withdrawType(authorization, userInfo):  # 根据用户是否签约来决定�
 
 
 def withdraw(authorization, week, userInfo):
-    now_week = int(datetime.datetime.now().isoweekday())  # 获取今天是星期几返回1-7
+    now_week = datetime.datetime.now().isoweekday()  # 获取今天是星期几返回1-7
     items = None
     msg = "无"
     errCode = 1
-    if week == now_week:
+    if str(week) == str(now_week):
         logging.info("[自动提现]到达设定日期，开始提现")
         msg, items = withdrawType(authorization, userInfo)
         errCode = 0
