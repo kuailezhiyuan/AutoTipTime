@@ -282,3 +282,5 @@ fabric.properties
 
 # 登陆信息的配置文件
 config.json
+.idea
+/passwd

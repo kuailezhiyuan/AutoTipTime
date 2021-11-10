@@ -38,7 +38,7 @@ def home():
 
 
 @app.route('/getCode', methods=['POST'])
-def CodeApi():
+def codeApi():
     phone = request.form.get("phone", '')
     try:
         # getCode(phone)
@@ -47,10 +47,11 @@ def CodeApi():
         return jsonify({"code": -1})
 
 @app.route('/getToken', methods=['POST'])
-def TokenApi():
+def tokenApi():
     phone = request.form.get("phone", '')
+    code = request.form.get("code", '')
     try:
-        getToken(phone)
+        # getToken(phone,code)
         return jsonify({"code": 0})
     except Exception as e:
         return jsonify({"code": -1})

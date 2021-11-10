@@ -16,6 +16,7 @@ baseConfig = {
         'Bark_key':""
     }
 
+basePasswd = "123456"
 
 def getDict(new,old):  #新旧信息合并
     temp = old
@@ -27,12 +28,17 @@ def getDict(new,old):  #新旧信息合并
 def getPassword():
     with open('passwd',"a+",encoding='utf-8') as f:
         f.seek(0)
-        return f.read()
+        passwd = f.read()
+        if passwd == "":
+            passwd = setPassword(basePasswd)
+        return passwd
 
 
 def setPassword(passwd):
     with open('passwd', "w",encoding='utf-8') as f:
-        f.write(generate_password_hash(passwd))
+        passwd = generate_password_hash(passwd)
+        f.write(passwd)
+    return passwd
 
 
 def getConfig():  #获取配置信息
