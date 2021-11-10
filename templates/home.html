@@ -14,7 +14,7 @@
 <div class="container" style="max-width: 64rem; margin: auto; width: 100%;">
     <div class="row">
         <div class="column">
-            {#            <h1>Info</h1>#}
+<!--            <h1>Info</h1>-->
             <h2>Updata Token</h2>
             <div id="phoneDiv">
                 <h3>Phone</h3>
@@ -62,7 +62,7 @@
             url: "/getCode",
             data: {phone: phone},
             success: function (data) {
-                if (data.code == 0) {
+                if (data.errCode == 0) {
                     $("#phoneBtn").css('display', 'none');
                     $("#phone").attr("disabled", true);
                     $("#codeDiv").show();
@@ -79,9 +79,10 @@
             url: "/getToken",
             data: {phone: phone, code: code},
             success: function (data) {
-                if (data.code == 0) {
+                if (data.errCode == 0) {
                     $("#codeBtn").css('display', 'none');
                     $("#code").attr("disabled", true);
+                    layer.msg('Token update successfully');
                 } else {
                     layer.msg('Error');
                 }

@@ -1,8 +1,6 @@
-import hashlib
 import configUtil
 from flask import Flask, request, render_template, redirect, url_for, make_response, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
-
 from client import getCode, getToken
 
 app = Flask(__name__)
@@ -40,25 +38,18 @@ def home():
 @app.route('/getCode', methods=['POST'])
 def codeApi():
     phone = request.form.get("phone", '')
-    try:
-        # getCode(phone)
-        return jsonify({"code": 0})
-    except Exception as e:
-        return jsonify({"code": -1})
+    return getCode(phone)
+
 
 @app.route('/getToken', methods=['POST'])
 def tokenApi():
     phone = request.form.get("phone", '')
     code = request.form.get("code", '')
-    try:
-        # getToken(phone,code)
-        return jsonify({"code": 0})
-    except Exception as e:
-        return jsonify({"code": -1})
+    data = getToken(phone, code)
+    if data['errCode'] == 0:
+        configUtil.updataConfig({"authorization": data['data']})
+    return jsonify(data)
 
-# @app.route('/start')
-# def home():
-#     return "home.html"
 
 if __name__ == '__main__':
     app.run()

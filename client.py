@@ -25,9 +25,14 @@ def getCode(phone):  # 获取验证码
         raise Exception("响应状态码:" + str(r.status_code) + "\n请求url:" + url + "\n消息:API可能已经变更，请暂停使用程序！")
     data = r.json()
     if data['errCode'] != 0:
+        msg = data['msg']
+        errCode = data['errCode']
         logging.error("请求验证码失败,[提示信息]" + data['msg'] + "[错误码]" + str(data['errCode']))
     else:
+        msg = data['msg']
+        errCode = 0
         logging.info("请求验证码成功")
+    return {'msg': msg, 'data': "", 'errCode': errCode}
 
 
 def getToken(phone, authCode):  # 获取Token
