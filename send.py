@@ -2,6 +2,7 @@ import base64
 import hashlib
 import hmac
 import logging
+import re
 import time
 import urllib
 import configUtil
@@ -12,21 +13,23 @@ def sendPushPlus(token, text, desp):  # 发送PushPlus代码
     url = "http://www.pushplus.plus/send"
     body_json = {"token": token, "title": text, "content": desp, "template": "html"}
     r = requests.post(url, json=body_json)
-    if r.status_code != 200:
+    if r.status_code == 200 and r.json().get("code") == 200:
+        logging.info("消息已经推送至PushPlus，请注意查验！")
+    else:
         logging.error("sendPushPlus(新版)方法请求失败")
         sendPushPlusOld(token, text, desp)
-    else:
-        logging.info("消息已经推送至PushPlus，请注意查验！")
 
 
 def sendPushPlusOld(token, text, desp):  # 发送PlusPlus代码(旧版)
     url = "http://pushplus.hxtrip.com/send"
     body_json = {"token": token, "title": text, "content": desp, "template": "html"}
     r = requests.post(url, json=body_json)
-    if r.status_code != 200:
-        logging.error("sendPushPlus(旧版)方法请求失败")
-    else:
+    code = re.findall(r"<code>(.+?)</code>", r.text)[0]
+    print(code)
+    if r.status_code == 200 and code == 200:
         logging.info("消息已经推送至PushPlus，请注意查验！")
+    else:
+        logging.error("sendPushPlus(旧版)方法请求失败")
 
 
 def sendTelegram(token, chatId, desp):  # 发送Telegram代码
@@ -87,6 +90,10 @@ def sendBark(token, text, desp):  # 发送PlusPlus代码
     else:
         logging.info("消息已经推送至Bark，请注意查验！")
 
+def sendErrMsg():
+    msg_content = []
+    msg_content.append("登录状态已经失效，请通过手机号码和验证码进行重新获取Token")
+    sendMSG("[甜糖星愿]-Auth失效通知", msg_content)
 
 def sendMSG(title, content):
     content.append("注意:以上统计仅供参考，一切请以甜糖客户端APP为准。")
@@ -103,7 +110,7 @@ def sendMSG(title, content):
                     msgContent = msgContent + "|------" + i + "<br>"
             else:
                 msgContent = msgContent + "" + item + "<br>"
-        sendPushPlus(config['PushPlus_token'],title, msgContent)
+        sendPushPlus(config['PushPlus_token'], title, msgContent)
 
     if len(config['tg_bot_token']) > 10 and len(config['chat_id']) != 0:  # (tg推送)
         msgContent = title + "\n\n"
@@ -117,7 +124,7 @@ def sendMSG(title, content):
                     msgContent = msgContent + "|----" + i + "\n"
             else:
                 msgContent = msgContent + "" + item + "\n"
-        sendTelegram(config['tg_bot_token'],config['chat_id'],msgContent)
+        sendTelegram(config['tg_bot_token'], config['chat_id'], msgContent)
     if len(config['DingDing_access_token']) > 10:  # (钉钉推送)
         msgContent = title + "\n\n"
         num = 0
@@ -130,7 +137,7 @@ def sendMSG(title, content):
                     msgContent = msgContent + "|----" + i + "\n"
             else:
                 msgContent = msgContent + "" + item + "\n"
-        sendDingDing(config['DingDing_access_token'],config['DingDing_secret'],msgContent)
+        sendDingDing(config['DingDing_access_token'], config['DingDing_secret'], msgContent)
 
     if len(config['iyuu_token']) > 10:  # (爱语飞飞推送)
         msgContent = ""
@@ -144,7 +151,7 @@ def sendMSG(title, content):
                     msgContent = msgContent + ">" + i + "\n"
             else:
                 msgContent = msgContent + item + "\n"
-        sendIYUU(config['iyuu_token'],title, msgContent)
+        sendIYUU(config['iyuu_token'], title, msgContent)
 
     if len(config['QMSG_key']) > 10:  # (QMSG酱推送)
         msgContent = title + "\n\n"
@@ -158,7 +165,7 @@ def sendMSG(title, content):
                     msgContent = msgContent + "|----" + i + "\n"
             else:
                 msgContent = msgContent + "" + item + "\n"
-        sendQMSG(config['QMSG_key'],msgContent)
+        sendQMSG(config['QMSG_key'], msgContent)
 
     if len(config['Bark_key']) > 10:  # (Bark推送)
         msgContent = ""
@@ -172,4 +179,4 @@ def sendMSG(title, content):
                     msgContent = msgContent + "|----" + i + "\n"
             else:
                 msgContent = msgContent + "" + item + "\n"
-        sendBark(config['Bark_key'],title, msgContent)
+        sendBark(config['Bark_key'], title, msgContent)

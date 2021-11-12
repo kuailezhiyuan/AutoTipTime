@@ -4,7 +4,7 @@ import random
 import logging
 import requests
 import configUtil
-from send import sendMSG
+from send import sendMSG, sendErrMsg
 
 
 def request(url, authorization, type="POST", parm=None):  # 封装请求方法
@@ -25,9 +25,14 @@ def getCode(phone):  # 获取验证码
         raise Exception("响应状态码:" + str(r.status_code) + "\n请求url:" + url + "\n消息:API可能已经变更，请暂停使用程序！")
     data = r.json()
     if data['errCode'] != 0:
+        msg = data['msg']
+        errCode = data['errCode']
         logging.error("请求验证码失败,[提示信息]" + data['msg'] + "[错误码]" + str(data['errCode']))
     else:
+        msg = data['msg']
+        errCode = 0
         logging.info("请求验证码成功")
+    return {'msg': msg, 'data': "", 'errCode': errCode}
 
 
 def getToken(phone, authCode):  # 获取Token
@@ -59,6 +64,7 @@ def getUserInfo(authorization):  # 甜糖用户初始化信息，可以获取待
     if data['errCode'] != 0:
         logging.error("authorization已经失效!")
         configUtil.updataConfig({'authorization': ''})
+        sendErrMsg()
         raise Exception("authorization已经失效!")
     logging.info("用户信息获取成功,[账户昵称]" + data['data']['nickName'] + "[手机号]" + data['data']['phoneNum'])
     return data['data']
@@ -69,8 +75,10 @@ def getDevicesList(authorization):  # 获取当前设备列表，可以获取待
     url = "http://tiantang.mogencloud.com/api/v1/devices?page=1&type=2&per_page=200"
     data = request(url, authorization, type="GET").json()
     if data['errCode'] != 0:
+        logging.error("authorization已经失效!")
         configUtil.updataConfig({'authorization': ''})
-        raise Exception("authorization已经失效")
+        sendErrMsg()
+        raise Exception("authorization已经失效!")
     devicesList = data['data']['data']
     logging.info("获取设备列表成功,[设备数量]" + str(len(devicesList)))
     if len(devicesList) == 0:
@@ -313,6 +321,10 @@ def createContent(userInfo,signInData,scoreLogData,deviceData,bandwidthData,with
 # 收取星星并提现
 def collect_star(config):
     authorization = config.get('authorization')
+    if not(config['authorization'] != None and len(config['authorization']) > 10):
+        logging.error("authorization已经失效!")
+        sendErrMsg()
+        raise Exception("authorization已经失效!")
     userInfo = getUserInfo(authorization)  # 获取用户信息
     signInData = signIn(authorization)  # 收取签到收益
     scoreLogData = scoreLogs(authorization, userInfo['inactivedPromoteScore'])  # 收取推广收益
@@ -328,6 +340,10 @@ def collect_star(config):
                             withdrawData=withdrawData)
     sendMSG("[甜糖星愿]星愿日结详细", content)  # 发送消息
 
+
+def taskJob():
+    config = configUtil.getConfig()
+    collect_star(config)
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Common Proxy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/milligram@1.4.1/dist/milligram.min.css">
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/layer/3.5.1/layer.min.js"></script>
+</head>
+<body>
+<div class="container" style="max-width: 64rem; margin: auto; width: 100%;">
+    <div class="row">
+        <div class="column">
+<!--            <h1>Info</h1>-->
+            <h2>Updata Token</h2>
+            <div id="phoneDiv">
+                <h3>Phone</h3>
+                <input id="phone">
+                <button id="phoneBtn">submit</button>
+            </div>
+            <div id="codeDiv" style="display: none">
+                <h3>Code</h3>
+                <input id="code">
+                <button id="codeBtn">submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var phone = ""
+
+    function isPhoneNo(phone) {
+        let pattern = /^1[34578]\d{9}$/;
+        return pattern.test(phone);
+    }
+
+    $("#phoneBtn").click(function () {
+        phone = $("#phone").val()
+        if (isPhoneNo(phone)) {
+            getCode(phone)
+        } else {
+            layer.msg('Please enter the correct mobile phone number');
+        }
+    });
+
+    $("#codeBtn").click(function () {
+        phone = $("#phone").val()
+        code = $("#code").val()
+        if (code) {
+            getToken(phone,code)
+        } else {
+            layer.msg('Please enter the code');
+        }
+    });
+
+    function getCode(phone) {
+        $.ajax({
+            type: "POST",
+            url: "/getCode",
+            data: {phone: phone},
+            success: function (data) {
+                if (data.errCode == 0) {
+                    $("#phoneBtn").css('display', 'none');
+                    $("#phone").attr("disabled", true);
+                    $("#codeDiv").show();
+                } else {
+                    layer.msg('Error');
+                }
+            }
+        });
+    }
+
+    function getToken(phone, code) {
+        $.ajax({
+            type: "POST",
+            url: "/getToken",
+            data: {phone: phone, code: code},
+            success: function (data) {
+                if (data.errCode == 0) {
+                    $("#codeBtn").css('display', 'none');
+                    $("#code").attr("disabled", true);
+                    layer.msg('Token update successfully');
+                } else {
+                    layer.msg('Error');
+                }
+            }
+        });
+    }
+</script>
+</body>
+
+</html>
