@@ -90,6 +90,10 @@ def sendBark(token, text, desp):  # 发送PlusPlus代码
     else:
         logging.info("消息已经推送至Bark，请注意查验！")
 
+def sendErrMsg():
+    msg_content = []
+    msg_content.append("登录状态已经失效，请通过手机号码和验证码进行重新获取Token")
+    sendMSG("[甜糖星愿]-Auth失效通知", msg_content)
 
 def sendMSG(title, content):
     content.append("注意:以上统计仅供参考，一切请以甜糖客户端APP为准。")

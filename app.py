@@ -2,13 +2,23 @@ import configUtil
 from flask import Flask, request, render_template, redirect, url_for, make_response, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from client import getCode, getToken
+from flask_apscheduler import APScheduler
 
 app = Flask(__name__)
+
+# 定时任务，导入配置
+# APSchedulerJobConfig 就是在 config.py文件中的 类 名称。
+app.config.from_object(configUtil.APSchedulerJobConfig)
+
+# 初始化Flask-APScheduler，定时任务
+scheduler = APScheduler()
+scheduler.init_app(app)
+scheduler.start()
+
 
 
 @app.route('/', methods=['POST', 'GET'])
 def login():
-    # configUtil.setPassword("123456")
     configpasswd = configUtil.getPassword()
     if request.method == 'POST':
         passwd = request.form.get("password", '')
